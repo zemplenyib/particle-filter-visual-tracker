@@ -18,6 +18,25 @@ def get_rectangle(particle, w_init, h_init):
 
   return x1.astype(int),x2.astype(int),y1.astype(int),y2.astype(int)
 
+def draw_particles_cv2(img, particles, w_init, h_init, color=(0, 0, 255), thickness=1):
+    """Draws particles on an OpenCV image."""
+    img_disp = img.copy()
+    if particles is not None:
+        if particles.ndim == 1:
+             particles = particles[np.newaxis, :]
+        
+        for particle in particles:
+            x1, x2, y1, y2 = get_rectangle(particle, w_init, h_init)
+            # Draw center point
+            cv2.circle(img_disp, (int(particle[0]), int(particle[2])), 1, color, -1)
+    return img_disp
+
+def draw_box_cv2(img, particle, w_init, h_init, color=(255, 0, 0), thickness=2):
+    """Draws the bounding box of a single particle/state."""
+    x1, x2, y1, y2 = get_rectangle(particle, w_init, h_init)
+    cv2.rectangle(img, (x1, y1), (x2, y2), color, thickness)
+    return img
+
 # Function to display one image
 def display_image(img, w_init, h_init, title='', size=None, show_axis=False, particles = None, weights = None, t = None):
     img_disp = img.copy()
