@@ -7,9 +7,9 @@ def close_figure(event):
         exit()
 
 def get_rectangle(particle, w_init, h_init):
-  theta = np.asscalar(np.deg2rad(particle[4]))
+  theta = np.deg2rad(particle[4]).item()
   s = particle[5]
-  w = np.asscalar(np.cos(theta)*w_init*s)
+  w = (np.cos(theta)*w_init*s).item()
   h = h_init*s
   x1 = particle[0] - w/2
   x2 = particle[0] + w/2

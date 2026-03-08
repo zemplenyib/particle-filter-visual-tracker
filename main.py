@@ -1,4 +1,5 @@
-from ParticleFilterTracker import ParticleFilterTracker
+from particle_filter_tracker import ParticleFilterTracker
+import os
 
 sigma_x = 1.73 #1.4 #6 #1.4
 sigma_y = 0.64 #1.4 #6 #1.4
@@ -13,4 +14,6 @@ pfTracker = ParticleFilterTracker(100,
                                   True,
                                   10)
 
-pfTracker.run_pf('BlurBody')
+base_path = os.path.dirname(os.path.abspath(__file__))
+data_path = os.path.join(base_path, 'Datasets', 'BlurBody')
+pfTracker.run_pf(data_path)
