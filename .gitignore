@@ -9,5 +9,6 @@ __pycache__/
 # Results and output
 results.txt
 
-# Datasets and generated data
+# Generated data
 images/
+videos/
