@@ -2,6 +2,7 @@ import numpy as np
 import utils
 from display_images import Visu
 from display_images import get_rectangle
+from display_images import extract_rotated_roi
 from filterpy.monte_carlo import systematic_resample
 from mgwo import MGWOptimizer
 import logging
@@ -146,15 +147,18 @@ class ParticleFilterTracker:
         for index,frame_bgr in enumerate(images):
             if frame_bgr is not None:
                 logging.info(f"Processing frame: {index} / {len(images)}")
-                state_estimate, iou = self.step(frame_bgr, gt[index,:])
+                state_estimation, iou = self.step(frame_bgr, gt[index,:])
 
                 iou_arr.append(iou)
-                state_estimate_arr.append(state_estimate)
+                state_estimate_arr.append(state_estimation)
 
                 #logging.info('IOU = {:.3f}'.format(iou))
 
                 if visualize:
-                    self._visu.display_frame_cv2(frame_bgr, self._particles, state_estimate, index, self._w_init, self._h_init, iou)
+                    self._visu.draw_frame_cv2(frame_bgr, self._particles, state_estimation, index, self._w_init, self._h_init, iou)
+                    best_particle = self._particles[np.argmax(self._weights)]
+                    self._visu.draw_box(best_particle, self._w_init, self._h_init, color=(255,0,0))
+                    self._visu.show()
 
         iou_avg = sum(iou_arr)/(len(iou_arr))
         logging.info('IOU avg  = {:.3f}'.format(iou_avg))

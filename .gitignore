@@ -1,0 +1,13 @@
+
+# Python cache
+__pycache__/
+*.pyc
+
+# VS Code settings
+.vscode/
+
+# Results and output
+results.txt
+
+# Datasets and generated data
+images/

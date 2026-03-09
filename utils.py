@@ -2,6 +2,7 @@ import os
 import cv2
 import numpy as np
 from display_images import get_rectangle
+from display_images import extract_rotated_roi
 
 RANGES = [0, 256, 0, 256, 0, 256]
 EPSILON = 0.000001
@@ -86,7 +87,9 @@ class LikelihoodEvaluator:
     def __init__(self, w_init, h_init, initial_frame, state):
         self.w_init = w_init
         self.h_init = h_init
-        self.target_hist = self.get_histogram(initial_frame, state)
+        roi = extract_rotated_roi(initial_frame, (state[0], state[2]), state[5]*self.w_init, state[5]*self.h_init, state[4])
+        #self.target_hist = self.get_histogram(initial_frame, state)
+        self.target_hist = self.get_histogram_from_roi(roi)
 
 
     def get_histogram(self, frame, particle):
@@ -97,15 +100,20 @@ class LikelihoodEvaluator:
         else:
             roi = frame
 
+        hist = self.get_histogram_from_roi(roi)
+        return hist
+
+    def get_histogram_from_roi(self, roi):
         # Calculate histogram
         hist = cv2.calcHist([roi], [0, 1, 2], None, [8,8,8], RANGES)
         hist = hist.flatten() / (np.sum(hist.flatten()) + EPSILON)
         return hist
 
-
     def update(self, frame, particles, weights, normalize = 'True'):
         for i,particle in enumerate(particles):
-            particle_hist = self.get_histogram(frame,particle)
+            roi = extract_rotated_roi(frame, (particle[0], particle[2]), particle[5]*self.w_init, particle[5]*self.h_init, particle[4])
+            #particle_hist = self.get_histogram(frame,particle)
+            particle_hist = self.get_histogram_from_roi(roi)
             weights[i] = 1-cv2.compareHist(self.target_hist, particle_hist, cv2.HISTCMP_BHATTACHARYYA) #cv2.HISTCMP_INTERSECT) #cv2.HISTCMP_CHISQR)
             
         if normalize:
