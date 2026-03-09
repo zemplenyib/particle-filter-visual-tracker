@@ -42,14 +42,23 @@ class ParticleFilterTracker:
         self._dim = initial_state.shape[0]
 
         # Create motion model matrices
-        self._G = np.array([[1, self._T, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0], [0, 0, 1, self._T, 0, 0], [0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 1]])
-        Qx = np.array([[1/4*self._T**4, 1/2*self._T**3], [1/2*self._T**3, self._T**2]]) * self._sigma[0]**2
-        Qy = np.array([[1/4*self._T**4, 1/2*self._T**3], [1/2*self._T**3, self._T**2]]) * self._sigma[1]**2
+        self._G = np.array([[1, self._T, 0,        0, 0, 0],
+                            [0,       1, 0,        0, 0, 0],
+                            [0,       0, 1, self._T,  0, 0],
+                            [0,       0, 0,        1, 0, 0],
+                            [0,       0, 0,        0, 1, 0],
+                            [0,       0, 0,        0, 0, 1]])
+        sigma_x = self._sigma[0]
+        sigma_y = self._sigma[1]
+        sigma_theta = self._sigma[2]
+        sigma_s = self._sigma[3]
+        Qx = np.array([[1/4*self._T**4, 1/2*self._T**3], [1/2*self._T**3, self._T**2]]) * sigma_x**2
+        Qy = np.array([[1/4*self._T**4, 1/2*self._T**3], [1/2*self._T**3, self._T**2]]) * sigma_y**2
         self._Q = np.zeros((6, 6))
         self._Q[0:2, 0:2] = Qx
         self._Q[2:4, 2:4] = Qy
-        self._Q[4, 4] = self._sigma[2]**2
-        self._Q[5, 5] = self._sigma[3]**2
+        self._Q[4, 4] = sigma_theta**2
+        self._Q[5, 5] = sigma_s**2
 
         # Create particles and weights
         self._particles = self.create_clone_particles(initial_state)
