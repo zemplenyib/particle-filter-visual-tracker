@@ -1,4 +1,7 @@
 import numpy as np
+from display_images import Visu
+
+
 
 EPSILON = 0.000001
 
@@ -10,7 +13,7 @@ class MGWOptimizer:
         self.rng = rng
 
 
-    def optimize(self, frame, particles, weights, sigma):
+    def optimize(self, frame, particles, weights, std_mgwo):
         N = particles.shape[0]
         dim = particles.shape[1]
 
@@ -19,9 +22,8 @@ class MGWOptimizer:
         weights_new = np.empty((N, 1))
 
         for t in range (self.mgwo_max_iter):
-            #TODO: create enum for sigma
-            r1 = 0.5 + self.rng.standard_normal((N, 3, dim))*sigma
-            r2 = 0.5 + self.rng.standard_normal((N, 3, dim))*sigma
+            r1 = 0.5 + self.rng.standard_normal((N, 3, dim)) * std_mgwo
+            r2 = 0.5 + self.rng.standard_normal((N, 3, dim)) * std_mgwo
             A = 2*self.a*r1-self.a
             C = 2*r2
             
@@ -36,16 +38,22 @@ class MGWOptimizer:
             X_beta = particles[beta]
             X_delta = particles[delta]
 
-            for i, particle in enumerate(particles):
-                D_alpha = np.absolute(C[i,0,:]*X_alpha - particle)
-                D_beta = np.absolute(C[i,1,:]*X_beta - particle)
-                D_delta = np.absolute(C[i,2,:]*X_delta - particle)
+            # visu = Visu()
+            # visu.start_frame(frame)
+            # visu.draw_particles(np.array([X_alpha, X_beta, X_delta]))
+            # visu.draw_all_box(particles, 80, 111)
+            # visu.show()
 
-                X_1 = X_alpha - A[i,0,:]*D_alpha
-                X_2 = X_beta - A[i,1,:]*D_beta
-                X_3 = X_delta - A[i,2,:]*D_delta
+            # Modify particles
+            D_alpha = np.abs(C[:,0,:] * X_alpha - particles)
+            D_beta  = np.abs(C[:,1,:] * X_beta  - particles)
+            D_delta = np.abs(C[:,2,:] * X_delta - particles)
 
-                particles_new[i] = (X_1 + X_2 + X_3)/3
+            X_1 = X_alpha - A[:,0,:] * D_alpha
+            X_2 = X_beta  - A[:,1,:] * D_beta
+            X_3 = X_delta - A[:,2,:] * D_delta
+
+            particles_new = (X_1 + X_2 + X_3) / 3
             
             # Update particle if new solution is better
             #TODO: make this more efficient

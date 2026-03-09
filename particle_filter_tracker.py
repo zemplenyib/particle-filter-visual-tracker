@@ -115,9 +115,9 @@ class ParticleFilterTracker:
         return particles
 
     def create_gaussian_particles(self, mean, std, N, dim):
-        particles = np.empty((N, dim))
-        for i in range(dim):
-            particles[:, i] = mean[i] + (self._rng.standard_normal(N) * std[i])
+        mean = np.asarray(mean)
+        std = np.asarray(std)
+        particles = mean + self._rng.standard_normal((N, dim)) * std
         return particles
 
     def resample_from_index(self, indexes):
@@ -130,13 +130,25 @@ class ParticleFilterTracker:
         self.resample_from_index(indexes)
         assert np.allclose(self._weights, 1/self._N)
 
+    def reinit_if_needed(self, frame, estimation):
+        weight = self._lh_eval.compute_weight(frame, estimation)
+        if weight < 0.5:
+            self._particles = self.create_gaussian_particles(estimation,
+                                                             [5,2,5,2,0.17,0.5],
+                                                             self._N,
+                                                             self._dim)
+            return True
+        return False
+
     def apply_mgwo_optimizer(self, frame):
-  
         # In case of losing object
         #TODO: can I just call initializer here?
         if not sum(self._weights)>0:
             height,width,_ = frame.shape
-            self._particles = self._create_gaussian_particles([int(width/2), 1, int(height/2), 1, 1, 1], [100,5,100,5,5,1], self._N, self._dim)
+            self._particles = self.create_gaussian_particles([int(width/2), 1, int(height/2), 1, 1, 1],
+                                                             [int(width/3),2,int(height/3),2,0.17,0.5],
+                                                             self._N,
+                                                             self._dim)
             self._lh_eval.update(frame, self._particles, self._weights)
             logger.info('Object lost')
 
@@ -164,8 +176,6 @@ class ParticleFilterTracker:
 
                 if visualize:
                     self._visu.draw_frame_cv2(frame_bgr, self._particles, state_estimation, index, self._w_init, self._h_init, iou)
-                    best_particle = self._particles[np.argmax(self._weights)]
-                    self._visu.draw_box(best_particle, self._w_init, self._h_init, color=(255,0,0))
                     self._visu.show()
 
         iou_avg = sum(iou_arr)/(len(iou_arr))
@@ -183,13 +193,17 @@ class ParticleFilterTracker:
             self.apply_mgwo_optimizer(frame)
         
         # 4. Estimate current state
-        state_estimation = self.estimate()
-
-        # 5. Verify
-        iou = self.verify(state_estimation, gt)
+        estimation = self.estimate()
 
         # 5. Resample
         self.resample()
 
-        return state_estimation, iou
+        # If the result is poor, reinitialize the particles
+        if self.reinit_if_needed(frame, estimation):
+            return estimation, 0.0
+        
+        # 5. Verify
+        iou = self.verify(estimation, gt)
+
+        return estimation, iou
         

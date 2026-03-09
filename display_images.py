@@ -11,14 +11,19 @@ class Visu:
         """Initialize the internal frame for drawing."""
         self.frame = frame.copy()
 
-    def draw_particles(self, particles, w_init, h_init, color=(0, 0, 255), thickness=1):
+    def draw_particles(self, particles, color=(0, 0, 255), thickness=1):
         if self.frame is not None:
-            self.frame = draw_particles_cv2(self.frame, particles, w_init, h_init, color, thickness)
+            self.frame = draw_particles_cv2(self.frame, particles, color, thickness)
 
     def draw_box(self, particle, w_init, h_init, color=(255, 0, 0), thickness=2):
         if self.frame is not None:
             self.frame = draw_box_cv2(self.frame, particle, w_init, h_init, color, thickness)
 
+    def draw_all_box(self, particles, w_init, h_init, color=(255, 0, 0), thickness=2):
+        if self.frame is not None:
+            for particle in particles:
+                self.frame = draw_box_cv2(self.frame, particle, w_init, h_init, color, thickness)
+    
     def draw_all_box(self, particles, w_init, h_init, color=(255, 0, 0), thickness=1):
         if self.frame is not None:
             for particle in particles:
@@ -48,7 +53,7 @@ class Visu:
             color = (0, 255, 0)
 
         self.start_frame(frame)
-        self.draw_particles(particles, w_init, h_init, color)
+        self.draw_particles(particles, color)
         self.draw_box(estimation, w_init, h_init, color)
         self.annotate(index, iou)
 
@@ -119,7 +124,7 @@ def get_rectangle(particle, w_init, h_init):
 
   return x1.astype(int),x2.astype(int),y1.astype(int),y2.astype(int)
 
-def draw_particles_cv2(img, particles, w_init, h_init, color=(0, 0, 255), thickness=1):
+def draw_particles_cv2(img, particles, color=(0, 0, 255), thickness=1):
     """Draws particles on an OpenCV image."""
     img_disp = img.copy()
     if particles is not None:
@@ -127,7 +132,6 @@ def draw_particles_cv2(img, particles, w_init, h_init, color=(0, 0, 255), thickn
              particles = particles[np.newaxis, :]
         
         for particle in particles:
-            x1, x2, y1, y2 = get_rectangle(particle, w_init, h_init)
             # Draw center point
             cv2.circle(img_disp, (int(particle[0]), int(particle[2])), 1, color, -1)
     return img_disp

@@ -124,9 +124,13 @@ class LikelihoodEvaluator:
 
         # Crop the region
         roi = frame[y_min:y_max, x_min:x_max]
+        if roi.size == 0:
+            # Return a zero histogram if the ROI is empty
+            return np.zeros(8*8*8, dtype=np.float32)
 
         # Shift box coordinates to ROI coordinates
-        box_shifted = box - [x_min, y_min]
+        box_shifted = np.round(box - [x_min, y_min]).astype(np.int32)
+        box_shifted = np.ascontiguousarray(box_shifted.reshape((-1, 1, 2)))
 
         # Create mask
         mask = np.zeros(roi.shape[:2], dtype=np.uint8)
@@ -137,13 +141,14 @@ class LikelihoodEvaluator:
         hist = hist.flatten() / (np.sum(hist.flatten()) + 1e-6)
         return hist
     
+    def compute_weight(self, frame, particle):
+        particle_hist = self.get_histogram_using_mask(frame, particle)
+        weight = 1-cv2.compareHist(self.target_hist, particle_hist, cv2.HISTCMP_BHATTACHARYYA) #cv2.HISTCMP_INTERSECT) #cv2.HISTCMP_CHISQR)
+        return weight
+
     def update(self, frame, particles, weights, normalize = 'True'):
         for i,particle in enumerate(particles):
-            #roi = extract_rotated_roi(frame, (particle[0], particle[2]), particle[5]*self.w_init, particle[5]*self.h_init, particle[4])
-            #particle_hist = self.get_histogram(frame,particle)
-            #particle_hist = self.get_histogram_from_roi(roi)
-            particle_hist = self.get_histogram_using_mask(frame, particle)
-            weights[i] = 1-cv2.compareHist(self.target_hist, particle_hist, cv2.HISTCMP_BHATTACHARYYA) #cv2.HISTCMP_INTERSECT) #cv2.HISTCMP_CHISQR)
-            
+            weights[i] = self.compute_weight(frame, particle)
+
         if normalize:
             weights /= (np.sum(weights)+EPSILON)
