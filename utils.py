@@ -109,11 +109,40 @@ class LikelihoodEvaluator:
         hist = hist.flatten() / (np.sum(hist.flatten()) + EPSILON)
         return hist
 
+    def get_histogram_using_mask(self, frame, particle):
+        # Get the rotated rectangle corners
+        center = (particle[0], particle[2])
+        width = particle[5]*self.w_init
+        height = particle[5]*self.h_init
+        theta = particle[4]
+        rect = ((center[0], center[1]), (width, height), theta)
+        box = cv2.boxPoints(rect).astype(int)
+
+        # Get axis-aligned bounding box
+        x_min, y_min = box[:,0].min(), box[:,1].min()
+        x_max, y_max = box[:,0].max(), box[:,1].max()
+
+        # Crop the region
+        roi = frame[y_min:y_max, x_min:x_max]
+
+        # Shift box coordinates to ROI coordinates
+        box_shifted = box - [x_min, y_min]
+
+        # Create mask
+        mask = np.zeros(roi.shape[:2], dtype=np.uint8)
+        cv2.fillPoly(mask, [box_shifted], 255)
+
+        # Compute histogram with mask
+        hist = cv2.calcHist([roi], [0, 1, 2], mask, [8,8,8], [0,256,0,256,0,256])
+        hist = hist.flatten() / (np.sum(hist.flatten()) + 1e-6)
+        return hist
+    
     def update(self, frame, particles, weights, normalize = 'True'):
         for i,particle in enumerate(particles):
-            roi = extract_rotated_roi(frame, (particle[0], particle[2]), particle[5]*self.w_init, particle[5]*self.h_init, particle[4])
+            #roi = extract_rotated_roi(frame, (particle[0], particle[2]), particle[5]*self.w_init, particle[5]*self.h_init, particle[4])
             #particle_hist = self.get_histogram(frame,particle)
-            particle_hist = self.get_histogram_from_roi(roi)
+            #particle_hist = self.get_histogram_from_roi(roi)
+            particle_hist = self.get_histogram_using_mask(frame, particle)
             weights[i] = 1-cv2.compareHist(self.target_hist, particle_hist, cv2.HISTCMP_BHATTACHARYYA) #cv2.HISTCMP_INTERSECT) #cv2.HISTCMP_CHISQR)
             
         if normalize:

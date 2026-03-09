@@ -1,14 +1,13 @@
 from particle_filter_tracker import ParticleFilterTracker
 import os
 
-std_x = 1.73 #1.4 #6 #1.4
-std_y = 1.5 #0.64 #1.4 #6 #1.4
-std_theta = 0.03 #1.96 #2.5
-std_s = 0.023 #0.025
-std_mgwo = 0.0458 #0.1 #0.05 #0.1
+std_x = 1.73     # [pix]
+std_y = 1.8      # [pix]
+std_theta = 0.03 # [rad]
+std_s = 0.023    # [unit]
 
 pfTracker = ParticleFilterTracker(100,
-                                  [std_x,std_y,std_theta,std_s, std_mgwo],
+                                  [std_x,std_y,std_theta,std_s],
                                   [1,1],
                                   1,
                                   True,

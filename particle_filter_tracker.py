@@ -2,7 +2,6 @@ import numpy as np
 import utils
 from display_images import Visu
 from display_images import get_rectangle
-from display_images import extract_rotated_roi
 from filterpy.monte_carlo import systematic_resample
 from mgwo import MGWOptimizer
 import logging
