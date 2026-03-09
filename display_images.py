@@ -2,6 +2,55 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 
+class Visu:
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def display_frame_cv2(frame, particles, estimation, index, w_init, h_init, iou = None):
+        if iou is None:
+            color = (0, 0, 255)
+        elif iou <= 0.5:
+            color = (0, 0, 255)
+        else:
+            color = (0, 255, 0)
+
+        vis_frame = frame.copy()
+        vis_frame = draw_particles_cv2(vis_frame, particles, w_init, h_init)
+        vis_frame = draw_box_cv2(vis_frame, estimation, w_init, h_init, color)
+
+        # Add text info
+        cv2.putText(vis_frame, f"Frame: {index}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+        cv2.putText(vis_frame, f"IoU: {iou:.2f}", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+        
+        cv2.imshow('Particle Filter MGWO Tracker', vis_frame)
+        # Handle user input
+        key = cv2.waitKey(30) & 0xFF
+        # 27: ASCII code for ESC
+        if key == 27:
+            exit()
+
+    @staticmethod
+    def draw_particles_cv2(img, particles, w_init, h_init, color=(0, 0, 255), thickness=1):
+        return draw_particles_cv2(img, particles, w_init, h_init, color, thickness)
+
+    @staticmethod
+    def draw_box_cv2(img, particle, w_init, h_init, color=(255, 0, 0), thickness=2):
+        return draw_box_cv2(img, particle, w_init, h_init, color, thickness)
+
+    @staticmethod
+    def display_image(img, w_init, h_init, title='', size=None, show_axis=False, particles=None, weights=None, t=None):
+        return display_image(img, w_init, h_init, title, size, show_axis, particles, weights, t)
+
+    @staticmethod
+    def display_images(ima1, ima2, title1='', title2='', size=None, show_axis=False, hsep=0.1):
+        return display_images(ima1, ima2, title1, title2, size, show_axis, hsep)
+
+    @staticmethod
+    def display_scatter(img, title='', size=None, show_axis=False, particles=None, weights=None):
+        return display_scatter(img, title, size, show_axis, particles, weights)
+
+
 def close_figure(event):
     if event.key == 'escape':
         exit()

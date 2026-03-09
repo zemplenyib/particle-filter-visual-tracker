@@ -16,4 +16,4 @@ pfTracker = ParticleFilterTracker(100,
 
 base_path = os.path.dirname(os.path.abspath(__file__))
 data_path = os.path.join(base_path, 'Datasets', 'BlurBody')
-pfTracker.run_pf(data_path)
+pfTracker.process_dataset(data_path, True)

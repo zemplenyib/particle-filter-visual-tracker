@@ -55,7 +55,7 @@ class MGWOptimizer:
                 if weight_new > weight:
                     particles[i] = particles_new[i]
                     weights[i] = weights_new[i]
-            # Update 'a' parameter
+            # Update control parameter
             self.a = 2 - 2*(np.sin(np.pi*t/self.mgwo_max_iter/2))**2
 
         weights /= (np.sum(weights)+EPSILON)
