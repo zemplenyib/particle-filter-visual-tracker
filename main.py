@@ -1,27 +1,52 @@
-from particle_filter_tracker import ParticleFilterTracker
+import argparse
 import os
 
-# BlurBody
-#std_x = 1.73      # [pix]
-#std_y = 1.5       # [pix]
-#std_theta = 0.2   # [rad]
-#std_s = 0.04     # [unit]
-#std_mgwo = 0.0458 # [unit]
-
-# Box
-std_x = 2      # [pix]
-std_y = 3       # [pix]
-std_theta = 0.2   # [rad]
-std_s = 0.04     # [unit]
-std_mgwo = 0.0458 # [unit]
-
-pfTracker = ParticleFilterTracker(100,
-                                  [std_x,std_y,std_theta,std_s, std_mgwo],
-                                  [1,1],
-                                  1,
-                                  True,
-                                  10)
+from constants import SIGMA
+from particle_filter_tracker import ParticleFilterTracker
 
 base_path = os.path.dirname(os.path.abspath(__file__))
-data_path = os.path.join(base_path, 'Datasets', 'Skating1')
-pfTracker.process_dataset(data_path, visualize=True)
+
+DATASETS = [
+    "BlurBody",
+    "BlurOwl",
+    "Box",
+    "Dog",
+    "Girl",
+    "Jogging1",
+    "Jogging2",
+    "Skating1",
+    "Skating2",
+    "Surfer",
+]
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        prog="particle_filter",
+        description=(
+            "Visual object tracker using a Particle Filter enhanced by a "
+            "Modified Gray Wolf Optimizer (MGWO). "
+            "The particle filter provides a Bayesian estimate of the target state; "
+            "MGWO refines the particle set each frame by attracting particles toward "
+            "the highest-likelihood regions."
+        ),
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    parser.add_argument(
+        "--dataset",
+        default="BlurBody",
+        choices=DATASETS,
+        help="Name of the benchmark dataset to track (must exist under ./Datasets/).",
+    )
+    args = parser.parse_args()
+
+    pfTracker = ParticleFilterTracker(
+        N=100,
+        sigma=SIGMA,
+        velocity=[1, 1],
+        T=1,
+        use_mgwo=True,
+        mgwo_max_iter=10,
+    )
+
+    data_path = os.path.join(base_path, "Datasets", args.dataset)
+    pfTracker.process_dataset(data_path, visualize=True)
