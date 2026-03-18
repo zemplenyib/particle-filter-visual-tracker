@@ -1,4 +1,4 @@
-# PF-MGWO — Particle Filter with Modified Gray Wolf Optimizer
+# Particle Filter with Modified Gray Wolf Optimizer
 
 A Python implementation of a visual object tracker that combines a **Particle Filter** (Bayesian state estimator) with a **Modified Gray Wolf Optimizer** (swarm-based particle refinement) for robust single-object tracking in video sequences.
 
@@ -16,18 +16,18 @@ state = [x, vx, y, vy, θ, s]
          |   |   |   |  |  scale
          |   |   |   |  rotation (deg)
          |   |   |   vy (px/frame)
-         |   |   y centroid (px)
+         |   |   y center (px)
          |   vx (px/frame)
-         x centroid (px)
+         x center (px)
 ```
 
 Each frame executes the following cycle:
 
 ```
-┌──────────┐     ┌────────────┐     ┌────────────┐     ┌──────────┐     ┌──────────┐
-│  Predict │────▶│   Weight   │────▶│  MGWO      │────▶│ Estimate │────▶│ Resample │
-│ (motion) │     │(appearance)│     │ (refine)   │     │ (mean)   │     │(sys res) │
-└──────────┘     └────────────┘     └────────────┘     └──────────┘     └──────────┘
+┌──────────┐      ┌────────────┐      ┌────────────┐      ┌──────────┐     ┌──────────┐
+│  Predict │─── ▶│   Weight    │────▶│  MGWO      │────▶│ Estimate │────▶│ Resample │
+│ (motion) │      │(appearance)│      │ (refine)   │      │ (mean)   │     │(sys res) │
+└──────────┘      └────────────┘      └────────────┘      └──────────┘     └──────────┘
 ```
 
 1. **Predict** — propagate each particle through a constant-velocity motion model with Gaussian process noise.
@@ -69,7 +69,7 @@ Average IoU across 10 standard OTB benchmark sequences (100 particles, 10 GWO it
 | Skating2  | 0.386        | 0.375         | 0.369          |
 | Surfer    | 0.053        | 0.134         | **0.179**      |
 
-MGWO (10 iterations) improves or matches the baseline on 7 of 10 sequences.
+MGWO (10 iterations) improves or matches the baseline on 7 of 10 sequences. Overall, the absolute IoU scores leave room for improvement — parameter tuning (particle count, process-noise sigmas, number of GWO iterations) on a per-sequence basis would likely push results significantly higher.
 
 ---
 
@@ -79,15 +79,12 @@ MGWO (10 iterations) improves or matches the baseline on 7 of 10 sequences.
 pip install -r requirements.txt
 ```
 
-> **Dataset note:** This repository does not bundle video data.  Download sequences from the [OTB benchmark](http://cvlab.hanyang.ac.kr/tracker_benchmark/) and place them under `Datasets/<SequenceName>/` with the following layout:
+> **Dataset note:** All 10 benchmark sequences are included in this repository under `Datasets/`.
+> Clone size is approximately **1 GB**, so the initial clone may take a while depending on your connection:
+> ```bash
+> git clone https://github.com/zemplenyib/particle-filter-visual-tracker
 > ```
-> Datasets/
-> └── BlurBody/
->     ├── img/
->     │   ├── 0001.jpg
->     │   └── ...
->     └── groundtruth_rect.txt
-> ```
+> The full OTB-100 dataset (100 sequences) is available via [prosti221/OTB-dataset](https://github.com/prosti221/OTB-dataset).
 
 ---
 
